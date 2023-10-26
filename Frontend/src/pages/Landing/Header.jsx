@@ -11,7 +11,7 @@ const Header = () => {
     }
 
     const addPosts = async (e) => {
-        // e.preventDefault();
+        e.preventDefault();
         await fetch(`https://www.ipqualityscore.com/api/json/url/${import.meta.env.VITE_API_KEY}/${encodeURI(url)}`, {
            method: 'POST',
            body: JSON.stringify({
