@@ -1,4 +1,38 @@
+import { useState } from 'react' 
+
 const Header = () => {
+
+    const [url, setUrl] = useState('');
+    const [ result, setResult ] = useState();
+
+    // Function to handle changing of input tags
+    const handleChange = (e) => {
+        setUrl(e.target.value)
+    }
+
+    const addPosts = async (e) => {
+        // e.preventDefault();
+        await fetch(`https://www.ipqualityscore.com/api/json/url/${import.meta.env.VITE_API_KEY}/${encodeURI(url)}`, {
+           method: 'POST',
+           body: JSON.stringify({
+              url: url,
+           }),
+           headers: {
+              'Content-type': 'application/json; charset=UTF-8',
+           },
+        })
+           .then((response) => response.json())
+           .then((data) => {
+                console.log(data)
+                setResult(data);
+                setUrl("")
+           })
+           .catch((err) => {
+                console.log(err);
+           });
+    };
+
+    
     return (
         <header
         style={{
@@ -35,8 +69,8 @@ const Header = () => {
                         <p className="text-center text-[18px] lg:text-[25px]">Verified Links for a Safer Social Media Experience</p>
                     </div>
                     <div className="flex items-center justify-center">
-                        <form className="flex items-center space-x-3 mt-24 lg:mt-40">
-                            <input type="url" placeholder="Place link here" className="bg-white focus:outline-blue text-[#0f0f0f] block rounded-xl py-4 px-2 w-[60%] lg:w-[25rem]" />
+                        <form className="flex items-center space-x-3 mt-24 lg:mt-40" onSubmit={addPosts}>
+                            <input type="url" placeholder="Place link here" onChange={handleChange} className="bg-white focus:outline-blue text-[#0f0f0f] block rounded-xl py-4 px-2 w-[60%] lg:w-[25rem]" />
                             <button className="bg-blue py-4 px-4 rounded-xl">
                                 <span>Verify Link</span>
                             </button>
