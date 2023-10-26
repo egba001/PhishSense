@@ -1,50 +1,109 @@
-from django.db import models
+# from django.db import models
+# from user_api.models import AppUser
+# import os
+# import joblib 
+# from sklearn.tree import DecisionTreeClassifier
+# from django.contrib.auth.models import User
+# from rest_framework import status
+# from rest_framework.response import Response
+# from sklearn.tree import DecisionTreeClassifier
+# from sklearn.feature_extraction.text import TfidfVectorizer
+# import re
+# from rest_framework import serializers
 
-# User model for both registered and unregistered users
-class User(models.Model):
-    username = models.CharField(max_length=255)
-    password = models.CharField(max_length=255)
-    email = models.EmailField()
-    registration_date = models.DateTimeField(auto_now_add=True)
+# current_directory = os.path.dirname(os.path.abspath(__file__))
+# model_file_path = os.path.join(current_directory, 'phishing_url_model.joblib')
 
-# Model for unregistered scans
-class UnregisteredScan(models.Model):
-    link_url = models.URLField()
-    scan_date = models.DateTimeField(auto_now_add=True)
-    result = models.CharField(max_length=20)
-    explanation = models.TextField()
-    recommendation = models.TextField()
-    scan_source = models.CharField(max_length=50)
+# # User model for both registered and unregistered users
+# class User(models.Model):
+#     user = models.OneToOneField(AppUser, on_delete=models.CASCADE)
+#     registration_date = models.DateTimeField(auto_now_add=True)
+    
+#     def __str__(self):
+#         return self.user.username
 
-# Model for link verifications, linked to a user
-class LinkVerification(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    link_url = models.URLField()
-    scan_date = models.DateTimeField(auto_now_add=True)
-    result = models.CharField(max_length=20)
-    explanation = models.TextField()
-    recommendation = models.TextField()
-    scan_source = models.CharField(max_length=50)
+# # Model for unregistered scans
+# class UnregisteredScan(models.Model):
+#     url = models.URLField()
+#     url_status = models.CharField(max_length=50, blank=True)  # Initialize as blank
 
-# Model for phishing and scam reports, linked to a user
-class PhishingScamReport(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    link_url = models.URLField()
-    report_date = models.DateTimeField(auto_now_add=True)
-    report_type = models.CharField(max_length=20)
-    report_description = models.TextField()
+#     def save(self, *args, **kwargs):
+#         ml_model = joblib.load(model_file_path)
 
-# Model for educational resources
-class EducationalResource(models.Model):
-    title = models.CharField(max_length=255)
-    description = models.TextField()
-    content_url = models.URLField()
-    resource_type = models.CharField(max_length=20)
+#         # Use the model to predict the URL status
+#         prediction = ml_model.predict([self.url])
 
-# Model for user actions
-class UserAction(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    action_type = models.CharField(max_length=50)
-    action_date = models.DateTimeField(auto_now_add=True)
-    link_url = models.URLField()
+#         if prediction[0] == 'bad':
+#             self.url_status = "This is a Phishing Site"
+#         else:
+#             self.url_status = "This is not a Phishing Site"
 
+#         super(UnregisteredScan, self).save(*args, **kwargs)
+
+#     def __str__(self):
+#         return self.url
+
+# class UnregisteredScanSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = UnregisteredScan
+#         fields = ('url', 'url_status')
+
+# # Model for link verifications, linked to a user
+# class LinkVerification(models.Model):
+#     LINK_STATUS = ((1, "Secure"),
+#                    (0, "Suspicious"))
+    
+#     user = models.ForeignKey(AppUser, on_delete=models.CASCADE)
+#     status = models.CharField(max_length=50)
+#     link_url = models.URLField()
+#     link_status = models.CharField(max_length=50, choices=LINK_STATUS)
+#     scan_date = models.DateTimeField(auto_now_add=True)
+#     summary = models.TextField()
+#     reasons_for_verification = models.TextField()
+#     recommended_actions = models.TextField()
+#     additional_info = models.TextField()
+    
+#     def __str__(self):
+#         return self.link_url
+
+# # Model for Safety Tips
+# class SafetyTips(models.Model):
+#     safety_tips = models.CharField(max_length=255)
+    
+#     def __str__(self):
+#         return self.safety_tips
+
+# # Model for Domain Reputation, linked to a user
+# class DomainReputation(models.Model):
+#     DOMAIN_STATUS = (("Secure", "Secure"),
+#                    ("Suspicious", "Suspicious"))
+#     user = models.ForeignKey(AppUser, on_delete=models.CASCADE) 
+#     link_url = models.URLField()
+#     domain_status = models.CharField(max_length=50, choices=DOMAIN_STATUS)
+    
+#     def __str__(self):
+#         return self.link_url
+
+# # Model for Flagged Links
+# class FlaggedLinks(models.Model):
+#     content_url = models.URLField()
+    
+#     def __str__(self):
+#         return self.content_url
+
+# # Model for Trustworthy Websites
+# class TrustworthyWebsite(models.Model):
+#     TRUSTWORTHY_WEBSITE_STATUS = (("Secure", "Secure"),
+#                    ("Suspicious", "Suspicious"))
+#     trustworthy_website_url = models.URLField()
+#     trustworthy_website_status = models.CharField(max_length=50, choices=TRUSTWORTHY_WEBSITE_STATUS)
+    
+#     def __str__(self):
+#         return self.trustworthy_website_url
+
+# # Model for Reported Links
+# class ReportedLinks(models.Model):
+#     reported_url = models.URLField()
+    
+#     def __str__(self):
+#         return self.reported_url
