@@ -26,11 +26,12 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 
 
-
+# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))
 nltk.download('punkt')
 
 # Load your AI model
 current_directory = os.path.dirname(os.path.abspath(__file__))
+# model_file_path = os.path.join(BASE_DIR, 'ml_model/phishing_url_model.joblib')
 model_file_path = os.path.join(current_directory, 'ml_model/phishing_url_model.joblib')
 
 logger = logging.getLogger(__name__)
@@ -39,6 +40,7 @@ class UnregisteredScanCreate(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         try:
             # Load the trained model
+            model_file_path = os.path.join(BASE_DIR, 'phishing_url_model.joblib')
             model = joblib.load(model_file_path)
 
             # Get the URL from the request data
