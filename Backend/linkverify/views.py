@@ -1,6 +1,8 @@
+import re 
 from django.contrib.auth.decorators import login_required
 from rest_framework.views import APIView
 from rest_framework.response import Response
+# from rest_framework import status
 from rest_framework import status, generics
 from .models import *
 from .serializers import *
@@ -8,49 +10,66 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import get_user_model
-# from .urls import *
+import joblib  # Import the joblib library for loading the AI model
+import os
+from django.http import JsonResponse
+import nltk
+import logging
+from sklearn.pipeline import Pipeline
+from .forms import UnregisteredScanForm
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
 
-class UnregisteredScanURLView(APIView):
-    def post(self, request, format=None):
-        url = request.data.get('url')
+# Add this line at the beginning of your views.py file
 
-        # Implement AI model logic to scan the URL and get the status
-        # Replace the following line with your actual AI model integration
-        # status = your_ai_model_scan(url)
 
-        # data = {'url': url, 'status': status}
-        serializer = UnregisteredScanSerializer(data=request.data)
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    
-    # def get(self, request, format=None):
-    #     scan = UnregisteredScan.objects.all()
-    #     serializer = UnregisteredScanSerializer(scan, many=True)
-    #     return Response(serializer.data)
-    
+
+nltk.download('punkt')
+
+# Load your AI model
+current_directory = os.path.dirname(os.path.abspath(__file__))
+model_file_path = os.path.join(current_directory, 'ml_model/phishing_url_model.joblib')
+
+logger = logging.getLogger(__name__)
+
 class UnregisteredScanCreate(generics.CreateAPIView):
-    queryset = UnregisteredScan.objects.all()
-    serializer_class = UnregisteredScanSerializer
-    # return Response(serializer.data)
-    # url = request.data.get('url')
+    def create(self, request, *args, **kwargs):
+        try:
+            # Load the trained model
+            model = joblib.load(model_file_path)
 
-        # Implement AI model logic to scan the URL and get the status
-        # Replace the following line with your actual AI model integration
-        # status = your_ai_model_scan(url)
+            # Get the URL from the request data
+            url = request.data.get("url", "")
 
-        # data = {'url': url, 'status': status}
-    # serializer = UnregisteredScanSerializer(data=request.data)
-    def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            if not url:
+                return Response({"error": "URL is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Predict the class (bad or good)
+            prediction = model.predict([url])
+
+            if prediction[0] == 'bad':
+                url_status = "This is a Phishing Site"
+            else:
+                url_status = "This is not a Phishing Site"
+
+            response_data = {
+                'url': url,
+                'url_status': url_status
+            }
+
+            return Response(response_data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+       
+
+# The rest of your view code remains the same
+
     
 class UnregisteredScanList(generics.ListAPIView):
     queryset = UnregisteredScan.objects.all()

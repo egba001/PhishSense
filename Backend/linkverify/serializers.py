@@ -7,9 +7,10 @@ class UserSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class UnregisteredScanSerializer(serializers.ModelSerializer):
+    url_status = serializers.CharField(default="", read_only=True)
     class Meta:
         model = UnregisteredScan
-        fields = '__all__'
+        fields = ('url', 'url_status')
 
 class LinkVerificationSerializer(serializers.ModelSerializer):
     class Meta:

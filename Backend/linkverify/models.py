@@ -1,5 +1,18 @@
 from django.db import models
 from user_api.models import AppUser
+import os
+import joblib 
+from sklearn.tree import DecisionTreeClassifier
+from django.contrib.auth.models import User
+from rest_framework import status
+from rest_framework.response import Response
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.feature_extraction.text import TfidfVectorizer
+import re
+from rest_framework import serializers
+
+current_directory = os.path.dirname(os.path.abspath(__file__))
+model_file_path = os.path.join(current_directory, 'phishing_url_model.joblib')
 
 # User model for both registered and unregistered users
 class User(models.Model):
@@ -11,16 +24,34 @@ class User(models.Model):
 
 # Model for unregistered scans
 class UnregisteredScan(models.Model):
-    link_url = models.URLField()
-    status = models.CharField(max_length=50)
-    
+    url = models.URLField()
+    url_status = models.CharField(max_length=50, blank=True)  # Initialize as blank
+
+    def save(self, *args, **kwargs):
+        ml_model = joblib.load(model_file_path)
+
+        # Use the model to predict the URL status
+        prediction = ml_model.predict([self.url])
+
+        if prediction[0] == 'bad':
+            self.url_status = "This is a Phishing Site"
+        else:
+            self.url_status = "This is not a Phishing Site"
+
+        super(UnregisteredScan, self).save(*args, **kwargs)
+
     def __str__(self):
-        return self.link_url
+        return self.url
+
+class UnregisteredScanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UnregisteredScan
+        fields = ('url', 'url_status')
 
 # Model for link verifications, linked to a user
 class LinkVerification(models.Model):
-    LINK_STATUS = (("Secure", "Secure"),
-                   ("Suspicious", "Suspicious"))
+    LINK_STATUS = ((1, "Secure"),
+                   (0, "Suspicious"))
     
     user = models.ForeignKey(AppUser, on_delete=models.CASCADE)
     status = models.CharField(max_length=50)
